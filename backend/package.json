@@ -1,0 +1,15 @@
+{
+  "name": "notes-app-backend",
+  "version": "1.0.0",
+  "description": "Express.js app with MongoDB for storing notes",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "mongoose": "^7.6.1"
+  }
+}
