@@ -5,6 +5,7 @@ import { NoteCard } from "./../components/NoteCard";
 import { NoteDetails } from "./../components/NoteDetails";
 import { UpsertNote } from "./../components/UpsertNote";
 import { PaletteContext } from "./../context/PaletteContext";
+import axios from "axios";
 
 const palettes = [
   { id: 1, color: "#0d1282", name: "blue-palette" },
@@ -29,20 +30,28 @@ const Home = () => {
   let filteredNotes = [];
   
 
+  const getAllNotes = async() => {
+    const allNotes = await axios.get("http://localhost:3000/notes/getAllNotes")
+    setNotes(allNotes.data);
+  }
+
   useEffect(() => {
-    const tempNotes = JSON.parse(localStorage.getItem("notes"));
-    tempNotes && setNotes(tempNotes);
+    // const tempNotes = JSON.parse(localStorage.getItem("notes"));
+    // tempNotes && setNotes(tempNotes);
+    getAllNotes();
   }, []);
 
   const saveNotes = (items) => {
     localStorage.setItem("notes", JSON.stringify(items));
   };
 
-  const handleCreateNote = (note) => {
+  const handleCreateNote = async(note) => {
     if (note) {
-      const tempNotes = [...notes, note];
-      setNotes(tempNotes);
-      saveNotes(tempNotes);
+      const url = "http://localhost:3000/notes/addNewNote"
+      const createNote = await axios.post(url, note)
+      console.log("Created Note", createNote)
+
+      await getAllNotes();
     }
   };
 
@@ -51,19 +60,37 @@ const Home = () => {
     setOnCreateNote(true);
   };
 
-  const handleUpdateNote = (note) => {
+  const handleUpdateNote = async(note) => {
     if (note) {
-      const tempNotes = [...notes.map((n) => (n.id === note.id ? note : n))];
-      setNotes(tempNotes);
-      setCurrentNote(null);
-      saveNotes(tempNotes);
+      // const tempNotes = [...notes.map((n) => (n.id === note.id ? note : n))];
+      // setNotes(tempNotes);
+      // setCurrentNote(null);
+      // saveNotes(tempNotes);
+
+      const url = `http://localhost:3000/notes/updateNote/${note.id}`;
+      const body = {
+        title: note.title,
+        desc: note.desc
+      }
+      const updatedNote = await axios.put(url, body)
+
+      await getAllNotes()
+
     }
   };
 
-  const handleDeleteNote = (noteId) => {
-    const tempNotes = [...notes.filter((n) => n.id !== noteId)];
-    setNotes(tempNotes);
-    saveNotes(tempNotes);
+  const handleDeleteNote = async(noteId) => {
+    // const tempNotes = [...notes.filter((n) => n.id !== noteId)];
+    // setNotes(tempNotes);
+    // saveNotes(tempNotes);
+
+    const url = `http://localhost:3000/notes/deleteNote/${noteId}`
+
+    const deletedNote = await axios.delete(url);
+
+    console.log("deletedNote", deletedNote);
+
+    await getAllNotes();
   };
 
   const handleOnPreview = (note) => {
@@ -71,19 +98,21 @@ const Home = () => {
     setOnViewNote(true);
   };
 
+   console.log("filtered notes", notes)
+
   if (search) {
     filteredNotes = [
       ...notes.filter(
         (n) =>
-          n.title.toLowerCase().includes(search.toLocaleLowerCase()) ||
-          n.desc.toLowerCase().includes(search.toLocaleLowerCase())
+          n.title.toLowerCase().startsWith(search.toLocaleLowerCase()) ||
+          n.desc.toLowerCase().startsWith(search.toLocaleLowerCase())
       ),
     ];
   } else {
     filteredNotes = [...notes];
   }
 
-  console.log("filtered notes", notes)
+ 
 
   return (
     <div
